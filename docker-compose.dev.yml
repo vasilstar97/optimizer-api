@@ -1,0 +1,15 @@
+version: '2.30.2'
+
+services:
+  web:
+    build: .
+    ports:
+      - 5000:5000
+    env_file:
+      - dev.env
+    environment:
+      - APP_NAME=my_app
+      - APP_VERSION=dev
+    volumes:
+      - ./app:/app
+    command: /start-reload.sh

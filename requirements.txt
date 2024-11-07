@@ -1,0 +1,4 @@
+fastapi
+pydantic
+loguru
+# blocksnet @ git+https://github.com/aimclub/blocksnet.git@develop
