@@ -1,4 +1,6 @@
 fastapi
 pydantic
+pydantic-geojson
+requests
 loguru
-# blocksnet @ git+https://github.com/aimclub/blocksnet.git@develop
+blocksnet @ git+https://github.com/aimclub/blocksnet.git@develop
