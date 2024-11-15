@@ -7,7 +7,7 @@ from ...utils import api_client, const
 
 def _fetch_project_geometry(project_scenario_id : int, token : str):
     scenario_info = api_client.get_scenario_by_id(project_scenario_id, token)
-    project_id = scenario_info['project_id']
+    project_id = scenario_info['project']['project_id']
     project_info = api_client.get_project_by_id(project_id, token)
     project_geometry_json = json.dumps(project_info['geometry'])
     return shapely.from_geojson(project_geometry_json)

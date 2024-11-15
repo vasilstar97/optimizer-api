@@ -2,8 +2,9 @@ import json
 import geopandas as gpd
 from functools import wraps
 from shapely import set_precision
+from .const import DEFAULT_CRS
 
-PRECISION_GRID_SIZE = 0.0001
+# PRECISION_GRID_SIZE = 0.00001
 
 def gdf_to_geojson(func):
     """
@@ -39,7 +40,7 @@ def gdf_to_geojson(func):
     """
     @wraps(func)
     def process(*args, **kwargs):
-        gdf = func(*args, **kwargs).to_crs(4326)
-        gdf.geometry = set_precision(gdf.geometry, grid_size=PRECISION_GRID_SIZE)
+        gdf = func(*args, **kwargs).to_crs(DEFAULT_CRS)
+        # gdf.geometry = set_precision(gdf.geometry, grid_size=PRECISION_GRID_SIZE)
         return json.loads(gdf.to_json())
     return process

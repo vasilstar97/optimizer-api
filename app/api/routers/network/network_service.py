@@ -15,7 +15,7 @@ from ...utils import api_client, const
 
 def _fetch_project_geometry(project_scenario_id : int, token : str):
     scenario_info = api_client.get_scenario_by_id(project_scenario_id, token)
-    project_id = scenario_info['project_id']
+    project_id = scenario_info['project']['project_id']
     project_info = api_client.get_project_by_id(project_id, token)
     project_geometry_json = json.dumps(project_info['geometry'])
     return shapely.from_geojson(project_geometry_json)
@@ -267,7 +267,7 @@ def process_geodata(territory, result_gdf, split_territory, buffer_distance=1, e
 
     result_lines = gpd.GeoDataFrame(columns=projected_lines.columns, crs=projected_lines.crs)
 
-    for idx, polygon in projected_polygons.iterrows():
+    for _, polygon in projected_polygons.iterrows():
         lines_within_polygon = projected_lines[projected_lines.intersects(polygon.geometry)]
 
         if len(lines_within_polygon) < 2:

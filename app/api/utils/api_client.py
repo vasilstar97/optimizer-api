@@ -7,5 +7,5 @@ def get_scenario_by_id(scenario_id : int, token : str):
     return res.json()
 
 def get_project_by_id(project_id : int, token : str):
-    res = requests.get(URBAN_API + f'/api/v1/projects/{project_id}/territory_info', headers={'Authorization': f'Bearer {token}'})
+    res = requests.get(URBAN_API + f'/api/v1/projects/{project_id}/territory', headers={'Authorization': f'Bearer {token}'})
     return res.json()

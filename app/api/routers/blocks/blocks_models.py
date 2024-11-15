@@ -7,14 +7,14 @@ class RoadNetworkModel(pg.FeatureCollectionModel):
 
     class RoadNetworkFeature(pg.FeatureModel):
         geometry : pg.LineStringModel | pg.MultiLineStringModel
-        properties : dict
+        properties : dict = {}
 
     features : list[RoadNetworkFeature]
 
 class BlocksModel(pg.FeatureCollectionModel):
 
-    class RoadNetworkFeature(pg.FeatureModel):
+    class BlocksFeature(pg.FeatureModel):
         geometry : pg.PolygonModel
-        properties : dict
+        properties : dict = {}
 
-    features : list[RoadNetworkFeature]
+    features : list[BlocksFeature]

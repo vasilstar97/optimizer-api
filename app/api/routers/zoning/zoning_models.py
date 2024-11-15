@@ -16,11 +16,11 @@ class Profile(Enum):
 
 class BlocksModel(pg.FeatureCollectionModel):
 
-    class RoadNetworkFeature(pg.FeatureModel):
+    class BlocksFeature(pg.FeatureModel):
         geometry : pg.PolygonModel
-        properties : dict
+        properties : dict | None = {}
 
-    features : list[RoadNetworkFeature]
+    features : list[BlocksFeature]
 
 class ZonesModel(pg.FeatureCollectionModel):
 
@@ -30,6 +30,6 @@ class ZonesModel(pg.FeatureCollectionModel):
             land_use : str
 
         geometry : pg.PolygonModel
-        properties : dict
+        properties : ZonesProperties
 
     features : list[ZonesFeature]
