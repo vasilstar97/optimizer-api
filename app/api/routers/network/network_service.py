@@ -541,6 +541,7 @@ def generate_network(project_scenario_id : int, token : str):
     logger.info('Fetching project geometry')
     project_geometry = _fetch_project_geometry(project_scenario_id, token)
     project_gdf = gpd.GeoDataFrame(geometry=[project_geometry], crs=const.DEFAULT_CRS)
+    project_gdf = project_gdf.explode(index_parts=False)
     project, num_parts = calculate_num_parts(project_gdf)
     project = split_polygon_grid(project, num_parts)
 
