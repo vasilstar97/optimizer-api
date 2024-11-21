@@ -15,7 +15,7 @@ def _fetch_project_geometry(project_scenario_id : int, token : str):
 def _fetch_water_objects(project_scenario_id : int, token : str):
     return None
 
-def generate_blocks(project_scenario_id : int, roads_gdf : gpd.GeoDataFrame, token : str):
+def generate_blocks(project_scenario_id : int, token : str, roads_gdf : gpd.GeoDataFrame | None = None, ):
     
     logger.info('Fetching project geometry')
     project_geometry = _fetch_project_geometry(project_scenario_id, token)
@@ -23,9 +23,12 @@ def generate_blocks(project_scenario_id : int, roads_gdf : gpd.GeoDataFrame, tok
 
     local_crs = project_gdf.estimate_utm_crs()
 
+    if roads_gdf is not None:
+        roads_gdf = roads_gdf.to_crs(local_crs)
+
     logger.info('Fetching water objects')
     water_gdf = _fetch_water_objects(project_scenario_id, token)
     
     logger.info('Initializing BlocksGenerator')
-    bg = BlocksGenerator(project_gdf.to_crs(local_crs), roads_gdf.to_crs(local_crs), None, water_gdf)
+    bg = BlocksGenerator(project_gdf.to_crs(local_crs), roads_gdf, None, water_gdf)
     return bg.run()

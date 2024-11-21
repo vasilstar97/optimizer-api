@@ -8,6 +8,9 @@ router = APIRouter(prefix='/blocks', tags=['Blocks'])
 
 @router.post('/generate')
 @decorators.gdf_to_geojson
-def generate_blocks(project_scenario_id : int, road_network : blocks_models.RoadNetworkModel, token : str = Depends(auth.verify_token)) -> blocks_models.BlocksModel:
-    road_network_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in road_network.features], const.DEFAULT_CRS)
-    return blocks_service.generate_blocks(project_scenario_id, road_network_gdf, token)
+def generate_blocks(project_scenario_id : int, token : str = Depends(auth.verify_token), road_network : blocks_models.RoadNetworkModel | None = None) -> blocks_models.BlocksModel:
+    if road_network is not None:
+        road_network_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in road_network.features], const.DEFAULT_CRS)
+    else:
+        road_network_gdf = None
+    return blocks_service.generate_blocks(project_scenario_id, token, road_network_gdf)
