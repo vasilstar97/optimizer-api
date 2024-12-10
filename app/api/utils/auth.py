@@ -1,22 +1,16 @@
 from fastapi import Depends, HTTPException
-from fastapi.security import APIKeyHeader
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-oauth2_scheme = APIKeyHeader(name="Authorization")
+http_bearer = HTTPBearer()
 
-def _get_token_from_header(header : str) -> str:
-    if not header:
+def _get_token_from_header(credentials: HTTPAuthorizationCredentials) -> str:
+    if not credentials:
         raise HTTPException(
             status_code=401,
             detail="Authorization header missing",
         )
-    # Проверяем формат: заголовок должен начинаться с 'Bearer '
-    if not header.startswith("Bearer "):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid authorization header format. Expected 'Bearer <token>'"
-        )
-    
-    token = header[len("Bearer "):]
+
+    token = credentials.credentials
 
     if not token:
         raise HTTPException(
@@ -26,6 +20,5 @@ def _get_token_from_header(header : str) -> str:
     
     return token
 
-async def verify_token(header: str = Depends(oauth2_scheme)):
-    token = _get_token_from_header(header)
-    return token
+async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(http_bearer)):
+    return _get_token_from_header(credentials)

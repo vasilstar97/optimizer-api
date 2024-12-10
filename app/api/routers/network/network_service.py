@@ -59,14 +59,42 @@ def interpolate_points_on_line(line, t1, t2):
     return point1, point2
 
 def split_lines(lines, epsg_projected=32636):
+    """
+    Split lines if they intersect with each other while avoiding overlapping splitters.
+
+    Parameters
+    ----------
+    lines : gpd.GeoDataFrame
+        GeoDataFrame containing LineString geometries to be split.
+    epsg_projected : int, optional
+        EPSG code for the coordinate reference system of the resulting GeoDataFrame.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        GeoDataFrame with split LineString geometries.
+    """
     new_lines = []
     for i, line in enumerate(lines.geometry):
         split_line = line
         for j, other_line in enumerate(lines.geometry):
-            if split_line is not None and other_line is not None and i != j and split_line.intersects(other_line):
-                split_result = split(split_line, other_line)
-                if split_result is not None:
-                    split_line = MultiLineString(split_result.geoms)
+            if i == j or split_line is None or other_line is None:
+                continue
+
+            # Avoid overlapping splitters
+            if split_line.overlaps(other_line):
+                logger.warning(f"Skipping overlapping splitters: Line {i} and Line {j}")
+                continue
+
+            # Perform split only if intersection exists
+            if split_line.intersects(other_line):
+                try:
+                    split_result = split(split_line, other_line)
+                    if split_result is not None:
+                        split_line = MultiLineString(split_result.geoms)
+                except Exception as e:
+                    logger.error(f"Error splitting lines: {e}")
+                    continue
 
         if split_line is not None:
             if isinstance(split_line, LineString):
@@ -74,8 +102,7 @@ def split_lines(lines, epsg_projected=32636):
             elif isinstance(split_line, MultiLineString):
                 new_lines.extend(split_line.geoms)
 
-    new_lines = gpd.GeoDataFrame(geometry=new_lines, crs=epsg_projected)
-    return new_lines
+    return gpd.GeoDataFrame(geometry=new_lines, crs=epsg_projected)
 
 def extend_single_line(line, distance=0.25):
     if len(line.coords) < 2:
