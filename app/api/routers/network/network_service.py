@@ -16,9 +16,10 @@ MAIN_ANGLE_MAX = 45
 SECONDARY_ANGLE_MIN = 85
 SECONDARY_ANGLE_MAX = 95
 
-def _fetch_project_geometry(project_scenario_id : int, token : str):
-    scenario_info = api_client.get_scenario_by_id(project_scenario_id, token)
-    project_id = scenario_info['project']['project_id']
+def _fetch_project_geometry(project_id : int, token : str):
+    # scenario_info = api_client.get_scenario_by_id(project_scenario_id, token)
+    # print(scenario_info)
+    # project_id = scenario_info['project']['project_id']
     project_info = api_client.get_project_by_id(project_id, token)
     project_geometry_json = json.dumps(project_info['geometry'])
     return shapely.from_geojson(project_geometry_json)
@@ -514,9 +515,9 @@ def _generate_network(gdf : gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     return line_final
 
-def generate_network(project_scenario_id : int, token : str):
+def generate_network(project_id : int, token : str):
     logger.info('Fetching project geometry')
-    project_geometry = _fetch_project_geometry(project_scenario_id, token)
+    project_geometry = _fetch_project_geometry(project_id, token)
     project_gdf = gpd.GeoDataFrame(geometry=[project_geometry], crs=const.DEFAULT_CRS)
     local_crs = project_gdf.estimate_utm_crs()
     project_gdf = project_gdf.to_crs(local_crs)

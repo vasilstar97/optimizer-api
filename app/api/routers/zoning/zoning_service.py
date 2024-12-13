@@ -15,7 +15,7 @@ def _get_profile_lu_shares(profile : Profile) -> dict[LandUse, float]: #FIXME re
     probabilities = [value / total for value in random_values]
     return dict(zip(LandUse, probabilities))
 
-def generate_zoning(profile : Profile, blocks_gdf : gpd.GeoDataFrame, max_iter : int):
+def generate_zoning(profile : Profile, blocks_gdf : gpd.GeoDataFrame, max_iter : int, rate : float):
 
     local_crs = blocks_gdf.estimate_utm_crs()
     blocks_gdf = blocks_gdf.to_crs(local_crs)
@@ -26,7 +26,7 @@ def generate_zoning(profile : Profile, blocks_gdf : gpd.GeoDataFrame, max_iter :
     luo = LandUseOptimizer(blocks_gdf)
 
     logger.info('Solving the optimization problem')
-    best_X, best_value, _, _ = luo.run(lu_shares, max_iter=max_iter)
+    best_X, best_value, _, _ = luo.run(lu_shares, max_iter=max_iter, rate=rate)
     logger.success(f'Problem solved, fit value equals {round(best_value,3)}')
 
     return luo.to_gdf(best_X)
