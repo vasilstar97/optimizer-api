@@ -4,12 +4,12 @@ import geopandas as gpd
 import random
 from loguru import logger
 from ...utils import const
-from .land_use_models import Profile
 from lu_igi.preprocessing.graph import generate_adjacency_graph
 from lu_igi.preprocessing.land_use import process_land_use
 from lu_igi.optimization.optimizer import Optimizer
 from lu_igi.optimization.problem import FitnessType
 from lu_igi.models.land_use import LandUse
+from .profile import LU_MAPPING, LU_SHARES, Profile
 
 DEFAULT_CRS = 4326
 MIN_INTERSECTION_SHARE = 0.3
@@ -29,10 +29,8 @@ LAND_USE_MAPPING = {
 }
 
 def _get_profile_lu_shares(profile : Profile) -> dict[LandUse, float]: #FIXME remove randomness
-    random_values = [random.random() for _ in range(len(LandUse))]
-    total = sum(random_values)
-    probabilities = [value / total for value in random_values]
-    return dict(zip(LandUse, probabilities))
+    lu = LU_MAPPING[profile]
+    return LU_SHARES[lu]
 
 def _process_land_use(blocks_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame):
     zones_gdf.geometry = zones_gdf.buffer(0) # somehow fixes topology problems
