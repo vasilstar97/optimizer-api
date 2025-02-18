@@ -6,9 +6,9 @@ from contextlib import asynccontextmanager
 from api.utils.const import API_TITLE, API_DESCRIPTION
 from api.routers.network import network_controller
 from api.routers.blocks import blocks_controller
-from api.routers.zoning import zoning_controller
+from api.routers.land_use import land_use_controller
 
-controllers = [network_controller, blocks_controller, zoning_controller]
+controllers = [network_controller, blocks_controller, land_use_controller]
 
 async def on_startup():
     ...

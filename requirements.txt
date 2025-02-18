@@ -5,4 +5,4 @@ requests
 loguru
 blocksnet @ git+https://github.com/aimclub/blocksnet.git@develop
 momepy
-lu_igi @ git+https://github.com/vasilstar97/lu-igi@main 
+lu_igi @ git+https://github.com/vasilstar97/lu-igi@main
