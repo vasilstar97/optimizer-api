@@ -49,3 +49,7 @@ class LandUseFeatureCollection(pg.FeatureCollectionModel):
 class LandUseResponseItem(BaseModel):
     blocks : LandUseFeatureCollection
     fitness : dict[str, float]
+
+class IndicatorsResponse(BaseModel):
+    before : dict[str, float]
+    after : dict[str, float]

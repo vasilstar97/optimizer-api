@@ -36,3 +36,12 @@ def generate_land_use(
     zones_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in zones.features], const.DEFAULT_CRS)
     result = land_use_service.generate_land_use(profile, blocks_gdf, zones_gdf, max_iter)[:n_results]
     return process_result(result)
+
+@router.post('/indicators')
+def predict_indicators(
+        profile : profile.Profile, 
+        blocks : land_use_models.LandUseFeatureCollection, 
+    ) -> land_use_models.IndicatorsResponse:
+    blocks_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in blocks.features], const.DEFAULT_CRS)
+    result = land_use_service.predict_indicators(profile, blocks_gdf)
+    return result

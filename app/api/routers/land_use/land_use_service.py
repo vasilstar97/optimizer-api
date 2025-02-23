@@ -10,6 +10,7 @@ from lu_igi.optimization.optimizer import Optimizer
 from lu_igi.optimization.problem import FitnessType
 from lu_igi.models.land_use import LandUse
 from .profile import LU_MAPPING, LU_SHARES, Profile
+from .indicators import get_indicators, ResidentialType
 
 DEFAULT_CRS = 4326
 MIN_INTERSECTION_SHARE = 0.3
@@ -52,3 +53,25 @@ def generate_land_use(profile : Profile, blocks_gdf : gpd.GeoDataFrame, zones_gd
 
     result_df = optimizer.run(blocks_ids, target_lu_shares, n_eval=max_iter, verbose=False)
     return optimizer.expand_result_df(result_df)
+
+def predict_indicators(profile : Profile, blocks_gdf : gpd.GeoDataFrame):
+    
+    local_crs = blocks_gdf.estimate_utm_crs()
+    blocks_gdf = blocks_gdf.to_crs(local_crs)
+
+    before = get_indicators(blocks_gdf, 'land_use', None)
+
+    residential_type = None
+    if profile == Profile.RESIDENTIAL_INDIVIDUAL or profile == Profile.RESIDENTIAL_LOWRISE:
+        residential_type = ResidentialType.LOW_RISE
+    if profile == Profile.RESIDENTIAL_MIDRISE:
+        residential_type = ResidentialType.MID_RISE
+    if profile == Profile.RESIDENTIAL_MULTISTOREY:
+        residential_type = ResidentialType.HIGH_RISE
+
+    after = get_indicators(blocks_gdf, 'assigned_land_use', residential_type)
+
+    return {
+        'before': before,
+        'after': after
+    }
