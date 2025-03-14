@@ -37,7 +37,7 @@ def generate_land_use(
     result = land_use_service.generate_land_use(profile, blocks_gdf, zones_gdf, max_iter)[:n_results]
     return process_result(result)
 
-@router.post('/indicators')
+@router.post('/indicators', deprecated=True)
 def predict_indicators(
         profile : profile.Profile, 
         blocks : land_use_models.LandUseFeatureCollection, 

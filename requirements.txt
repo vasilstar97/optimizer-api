@@ -3,6 +3,8 @@ pydantic
 pydantic-geojson
 requests
 loguru
-blocksnet @ git+https://github.com/aimclub/blocksnet.git@develop 
+networkit==11.0
+iduedu==0.1.2
+blocksnet @ git+https://github.com/aimclub/blocksnet.git@develop  
 momepy
 lu_igi @ git+https://github.com/vasilstar97/lu-igi@main
