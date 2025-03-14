@@ -6,7 +6,7 @@ from . import indicators_service
 
 router = APIRouter(prefix='/indicators', tags=['Indicators'])
 
-@router.post('/indicators')
+@router.post('/predict')
 def predict(
         scenario_id : int,
     ) -> dict[str, 'float']:
