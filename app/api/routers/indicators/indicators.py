@@ -111,6 +111,16 @@ PROVISION_CULTURE_KEY = 'Культурные учреждения (м2)' # 165
 PROVISION_SPORT_KEY = 'Спортивные учреждения (м2)' # 350
 PROVISION_COMMERCE_KEY = 'Торговые учреждения (м2)' # 300
 
+SHARES_KEYS = {
+    LandUse.RESIDENTIAL: 'Жилые ФЗ (%)',
+    LandUse.BUSINESS: "Общественно-деловые ФЗ (%)",
+    LandUse.RECREATION: "Рекреационные ФЗ (%)",
+    LandUse.SPECIAL: "ФЗ специального назначения (%)",
+    LandUse.INDUSTRIAL: "Производственные ФЗ (%)",
+    LandUse.AGRICULTURE: "Сельскохозяйственные ФЗ (%)",
+    LandUse.TRANSPORT: "Транспортные ФЗ (%)",
+}
+
 
 class BlocksContainer(BaseModel):
     area : float
@@ -191,11 +201,20 @@ class BlocksContainer(BaseModel):
     @property
     def provision_commerce(self):
         return self.population / 1000 * 300
+    
+    def _get_share(self, lu : LandUse):
+        area = sum([block.area_m2 for block in self.blocks if block.land_use == lu])
+        return area/self.area_m2
+
+    @property
+    def share_indicators(self):
+        return {name : round(100 * self._get_share(lu)) for lu,name in SHARES_KEYS.items()}
 
     def get_indicators(self):
         return {
             TERRITORY_AREA_HA_KEY : round(self.area_ha,2),
             TERRITORY_AREA_M2_KEY : round(self.area_m2),
+            **self.share_indicators,
             GSI_KEY : round(self.gsi,1),
             FP_AREA_KEY : round(self.footprint_area),
             FSI_KEY : round(self.fsi, 1),
