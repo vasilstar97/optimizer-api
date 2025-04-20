@@ -38,3 +38,9 @@ def get_functional_zones(scenario_id : int, year : int, source : str, token : st
     }, headers=_headers_from_token(token))
     _raise_for_status(res)
     return gpd.GeoDataFrame.from_features(res.json()['features'], crs=DEFAULT_CRS)
+
+def get_functional_zones_types():
+    res = requests.get(f'{URBAN_API}/api/v1/functional_zones_types')
+    _raise_for_status(res)
+    res_json = res.json()
+    return pd.DataFrame(res_json).set_index('functional_zone_type_id')
