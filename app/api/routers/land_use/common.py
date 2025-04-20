@@ -1,30 +1,19 @@
 
 from lu_igi.models.land_use import LandUse
-from enum import Enum
-
-class Profile(Enum):
-  RESIDENTIAL_INDIVIDUAL = 'Жилая застройка - ИЖС'
-  RESIDENTIAL_LOWRISE = 'Жилая застройка - Малоэтажная'
-  RESIDENTIAL_MIDRISE = 'Жилая застройка - Среднеэтажная'
-  RESIDENTIAL_MULTISTOREY = 'Жилая застройка - Многоэтажная'
-  BUSINESS = 'Общественно-деловая'
-  RECREATION = 'Рекреационная'
-  SPECIAL = 'Специального назначения'
-  INDUSTRIAL = 'Промышленная'
-  AGRICULTURE = 'Сельско-хозяйственная'
-  TRANSPORT = 'Транспортная инженерная'
 
 LU_MAPPING = {
-  Profile.RESIDENTIAL_INDIVIDUAL: LandUse.RESIDENTIAL,
-  Profile.RESIDENTIAL_LOWRISE: LandUse.RESIDENTIAL,
-  Profile.RESIDENTIAL_MIDRISE: LandUse.RESIDENTIAL,
-  Profile.RESIDENTIAL_MULTISTOREY: LandUse.RESIDENTIAL,
-  Profile.BUSINESS: LandUse.BUSINESS,
-  Profile.RECREATION: LandUse.RECREATION,
-  Profile.SPECIAL: LandUse.SPECIAL,
-  Profile.INDUSTRIAL: LandUse.INDUSTRIAL,
-  Profile.AGRICULTURE: LandUse.AGRICULTURE,
-  Profile.TRANSPORT: LandUse.TRANSPORT
+  1: LandUse.RESIDENTIAL,
+  2: LandUse.RECREATION,
+  3: LandUse.SPECIAL,
+  4: LandUse.INDUSTRIAL,
+  5: LandUse.AGRICULTURE,
+  6: LandUse.TRANSPORT,
+  7: LandUse.BUSINESS,
+  10: LandUse.RESIDENTIAL,
+  11: LandUse.RESIDENTIAL,
+  12: LandUse.RESIDENTIAL,
+  13: LandUse.RESIDENTIAL,
+#   15: LandUse.RESIDENTIAL,
 }
 
 LU_SHARES = {

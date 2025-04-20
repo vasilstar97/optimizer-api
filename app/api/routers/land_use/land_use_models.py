@@ -38,7 +38,7 @@ class LandUseFeatureCollection(pg.FeatureCollectionModel):
     class LandUseFeature(pg.FeatureModel):
 
         class LandUseProperties(BaseModel):
-            land_use : str
+            land_use : str | None
             assigned_land_use : str
 
         geometry : pg.PolygonModel
@@ -49,7 +49,3 @@ class LandUseFeatureCollection(pg.FeatureCollectionModel):
 class LandUseResponseItem(BaseModel):
     blocks : LandUseFeatureCollection
     fitness : dict[str, float]
-
-class IndicatorsResponse(BaseModel):
-    before : dict[str, float]
-    after : dict[str, float]
