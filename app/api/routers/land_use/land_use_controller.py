@@ -25,10 +25,9 @@ def generate_land_use(
         profile : str, 
         blocks : land_use_models.BlocksFeatureCollection, 
         zones : land_use_models.ZonesFeatureCollection, 
-        n_results : int = 3,
         max_iter : int = 1_000,
     ) -> list[land_use_models.LandUseResponseItem]:
     blocks_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in blocks.features], const.DEFAULT_CRS)
     zones_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in zones.features], const.DEFAULT_CRS)
-    result = land_use_service.generate_land_use(profile, blocks_gdf, zones_gdf, max_iter)[:n_results]
+    result = land_use_service.generate_land_use(profile, blocks_gdf, zones_gdf, max_iter)
     return process_result(result)

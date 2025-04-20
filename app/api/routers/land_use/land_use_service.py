@@ -1,13 +1,10 @@
-import json
-import shapely
 import geopandas as gpd
-import random
 from loguru import logger
+from fastapi import HTTPException
 from ...utils import const, api_client
 from lu_igi.preprocessing.graph import generate_adjacency_graph
 from lu_igi.preprocessing.land_use import process_land_use
 from lu_igi.optimization.optimizer import Optimizer
-from lu_igi.optimization.problem import FitnessType
 from lu_igi.models.land_use import LandUse
 from .common import LU_MAPPING, LU_SHARES
 
@@ -39,7 +36,10 @@ def _process_land_use(blocks_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFram
 
 def _get_profile_id(profile_name : str) -> int:
     profiles = api_client.get_functional_zones_types()
-    profile_id = profiles[profiles['zone_nickname'] == profile_name].iloc[0].name
+    try:
+        profile_id = profiles[profiles['zone_nickname'] == profile_name].iloc[0].name
+    except:
+        raise HTTPException(422, detail='No profile with such name')
     return int(profile_id)
 
 def generate_land_use(profile_name : str, blocks_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame, max_iter : int):
