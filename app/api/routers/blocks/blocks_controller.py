@@ -6,7 +6,7 @@ from . import blocks_models, blocks_service
 
 router = APIRouter(prefix='/blocks', tags=['Blocks'])
 
-@router.post('/generate')
+@router.post('/generate', deprecated=True)
 @decorators.gdf_to_geojson
 def generate_blocks(project_id : int, token : str = Depends(auth.verify_token), road_network : blocks_models.RoadNetworkModel | None = None) -> blocks_models.BlocksModel:
     if road_network is not None:

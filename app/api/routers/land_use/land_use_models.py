@@ -1,7 +1,14 @@
 from pydantic import BaseModel
 import pydantic_geojson as pg
 from enum import Enum
-  
+
+class RoadsFeatureCollection(pg.FeatureCollectionModel):
+
+    class RoadsFeature(pg.FeatureModel):
+        geometry : pg.LineStringModel | pg.MultiLineStringModel
+        properties : dict = {}
+
+    features : list[RoadsFeature]  
 
 class BlocksFeatureCollection(pg.FeatureCollectionModel):
 
