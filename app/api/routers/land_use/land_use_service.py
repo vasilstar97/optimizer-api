@@ -1,3 +1,5 @@
+import json
+import shapely
 import geopandas as gpd
 from loguru import logger
 from fastapi import HTTPException
@@ -6,6 +8,7 @@ from lu_igi.preprocessing.graph import generate_adjacency_graph
 from lu_igi.preprocessing.land_use import process_land_use
 from lu_igi.optimization.optimizer import Optimizer
 from lu_igi.models.land_use import LandUse
+from blocksnet.preprocessing.blocks_generator import BlocksGenerator
 from .common import LU_MAPPING, LU_SHARES
 
 DEFAULT_CRS = 4326
@@ -30,37 +33,70 @@ def _get_profile_lu_shares(profile_id : int) -> dict[LandUse, float]:
     return LU_SHARES[lu]
 
 def _process_land_use(blocks_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame):
+    logger.info('2. Processing blocks land use')
     zones_gdf.geometry = zones_gdf.buffer(0) # somehow fixes topology problems
+    logger.info('2.1. Mapping functional_zone_type with ids')
     zones_gdf['zone'] = zones_gdf['functional_zone_type'].apply(lambda fzt : fzt['id'])
-    return process_land_use(blocks_gdf, zones_gdf, LAND_USE_MAPPING, min_intersection_share=0.3)
+    logger.info('2.2. Intersecting land use with blocks')
+    result_gdf = process_land_use(blocks_gdf, zones_gdf, LAND_USE_MAPPING, min_intersection_share=0.3)
+    logger.success('2.3. Land use is processed successfully')
+    return result_gdf
 
-def _get_profile_id(profile_name : str) -> int:
-    profiles = api_client.get_functional_zones_types()
-    try:
-        profile_id = profiles[profiles['zone_nickname'] == profile_name].iloc[0].name
-    except:
-        raise HTTPException(422, detail='No profile with such name')
-    return int(profile_id)
+def _get_project_geometry(project_id : int, token):
+    project_info = api_client.get_project_by_id(project_id, token)
+    geometry_json = json.dumps(project_info['geometry'])
+    return shapely.from_geojson(geometry_json)
 
-def generate_land_use(profile_name : str, blocks_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame, max_iter : int):
+def _fetch_water_objects(project_id : int, token : str):
+    return None
 
-    logger.info('Preprocessing input')
-    local_crs = blocks_gdf.estimate_utm_crs()
-    blocks_gdf = blocks_gdf.to_crs(local_crs)
-    zones_gdf = zones_gdf.to_crs(local_crs)
+def _generate_blocks(project_id : int, roads_gdf : gpd.GeoDataFrame, token : str | None):
 
-    blocks_gdf = _process_land_use(blocks_gdf, zones_gdf)
+    logger.info('1. Generating blocks')
+    logger.info('1.1. Fetching project geometry')
+    project_geometry = _get_project_geometry(project_id, token)
+    project_gdf = gpd.GeoDataFrame(geometry=[project_geometry], crs=const.DEFAULT_CRS)
+
+    logger.info('1.2. Fetching water objects')
+    water_gdf = _fetch_water_objects(project_id, token)
+    
+    logger.info('1.3. Initializing and running BlocksGenerator')
+    local_crs = roads_gdf.crs
+    roads_gdf = roads_gdf.explode(index_parts=False).reset_index(drop=True)
+    bg = BlocksGenerator(project_gdf.to_crs(local_crs), roads_gdf, None, water_gdf)
+    blocks_gdf = bg.run()
+    
+    logger.success('1.4. Blocks are generated successfully')
+    return blocks_gdf
+
+def _optimize_land_use(profile_id : int, blocks_gdf : gpd.GeoDataFrame, max_iter : int):
+    logger.info('3. Optimizing land use')
+
+    logger.info('3.1. Generating adjacency graph and setting optimizer')
     graph = generate_adjacency_graph(blocks_gdf)
     optimizer = Optimizer(graph)
 
-    logger.info('Getting profile id')
-    profile_id = _get_profile_id(profile_name)
-
+    logger.info('3.2. Getting profile land use shares')
     target_lu_shares = _get_profile_lu_shares(profile_id)
     blocks_ids = list(blocks_gdf.index)
 
-    logger.info('Optimizing')
+    logger.info('3.3. Running the optimizer')
     result_df = optimizer.run(blocks_ids, target_lu_shares, n_eval=max_iter, verbose=False)
-    logger.success('Optimized successfully')
 
-    return optimizer.expand_result_df(result_df)
+    logger.info('3.4. Expanding the result')
+    result = optimizer.expand_result_df(result_df)
+    
+    logger.success('3.5. Land use is optimized successfully')
+    return result
+
+def generate_land_use(project_id : int, profile_id : int, roads_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame, max_iter : int, token : str | None):
+
+    logger.info('Preprocessing input')
+    local_crs = roads_gdf.estimate_utm_crs()
+    roads_gdf = roads_gdf.to_crs(local_crs)
+    zones_gdf = zones_gdf.to_crs(local_crs)
+
+    blocks_gdf = _generate_blocks(project_id, roads_gdf, token)
+    blocks_gdf = _process_land_use(blocks_gdf, zones_gdf)
+
+    return _optimize_land_use(profile_id, blocks_gdf, max_iter)
