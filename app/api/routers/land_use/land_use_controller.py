@@ -24,9 +24,9 @@ def process_result(result : list[dict]):
 def generate_land_use(
         project_id : int,
         profile_id : int,
-        roads :  land_use_models.RoadsFeatureCollection | None,
-        blocks : land_use_models.BlocksFeatureCollection | None,
         zones : land_use_models.ZonesFeatureCollection, 
+        roads :  land_use_models.RoadsFeatureCollection | None = None,
+        blocks : land_use_models.BlocksFeatureCollection | None = None,
         max_iter : int = 1_000,
         token : str = Depends(auth.verify_token),
     ) -> list[land_use_models.LandUseResponseItem]:

@@ -7,4 +7,4 @@ networkit==11.0
 iduedu==0.1.2
 blocksnet @ git+https://github.com/aimclub/blocksnet.git@api  
 momepy
-lu_igi @ git+https://github.com/vasilstar97/lu-igi@main
+lu_igi @ git+https://github.com/vasilstar97/lu-igi@main 
