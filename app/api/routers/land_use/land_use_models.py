@@ -17,7 +17,7 @@ class BlocksFeatureCollection(pg.FeatureCollectionModel):
         class BlocksProperties(BaseModel):
             ...
 
-        geometry : pg.PolygonModel
+        geometry : pg.PolygonModel | pg.MultiPolygonModel
         properties : BlocksProperties
 
     features : list[BlocksFeature]

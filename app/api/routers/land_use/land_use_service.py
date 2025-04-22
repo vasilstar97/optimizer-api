@@ -2,7 +2,6 @@ import json
 import shapely
 import geopandas as gpd
 from loguru import logger
-from fastapi import HTTPException
 from ...utils import const, api_client
 from lu_igi.preprocessing.graph import generate_adjacency_graph
 from lu_igi.preprocessing.land_use import process_land_use
@@ -89,14 +88,18 @@ def _optimize_land_use(profile_id : int, blocks_gdf : gpd.GeoDataFrame, max_iter
     logger.success('3.5. Land use is optimized successfully')
     return result
 
-def generate_land_use(project_id : int, profile_id : int, roads_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame, max_iter : int, token : str | None):
+def generate_land_use(project_id : int, profile_id : int, user_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame, generate_blocks : bool, max_iter : int, token : str | None):
 
     logger.info('Preprocessing input')
-    local_crs = roads_gdf.estimate_utm_crs()
-    roads_gdf = roads_gdf.to_crs(local_crs)
+    local_crs = zones_gdf.estimate_utm_crs()
     zones_gdf = zones_gdf.to_crs(local_crs)
+    user_gdf = user_gdf.to_crs(local_crs)
 
-    blocks_gdf = _generate_blocks(project_id, roads_gdf, token)
+    if generate_blocks:
+        blocks_gdf = _generate_blocks(project_id, user_gdf, token)
+    else:
+        blocks_gdf = user_gdf.explode(index_parts=False).reset_index(drop=True)
+
     blocks_gdf = _process_land_use(blocks_gdf, zones_gdf)
 
     return _optimize_land_use(profile_id, blocks_gdf, max_iter)
