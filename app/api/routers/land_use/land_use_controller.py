@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 import geopandas as gpd
 from lu_igi.optimization.problem import FitnessType
 from ...utils import const, auth
@@ -24,13 +24,20 @@ def process_result(result : list[dict]):
 def generate_land_use(
         project_id : int,
         profile_id : int,
-        roads :  land_use_models.RoadsFeatureCollection,
-        # blocks : land_use_models.BlocksFeatureCollection, 
         zones : land_use_models.ZonesFeatureCollection, 
+        roads :  land_use_models.RoadsFeatureCollection | None = None,
+        blocks : land_use_models.BlocksFeatureCollection | None = None,
         max_iter : int = 1_000,
         token : str = Depends(auth.verify_token),
     ) -> list[land_use_models.LandUseResponseItem]:
-    roads_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in roads.features], const.DEFAULT_CRS)
+    if blocks is not None:
+        user_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in blocks.features], const.DEFAULT_CRS)
+        generate_blocks = False
+    elif roads is not None:
+        user_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in roads.features], const.DEFAULT_CRS)
+        generate_blocks = True
+    else:
+        raise HTTPException(400, 'Either blocks or roads must be provided in body')
     zones_gdf = gpd.GeoDataFrame.from_features([f.model_dump() for f in zones.features], const.DEFAULT_CRS)
-    result = land_use_service.generate_land_use(project_id, profile_id, roads_gdf, zones_gdf, max_iter, token)
+    result = land_use_service.generate_land_use(project_id, profile_id, user_gdf, zones_gdf, generate_blocks, max_iter, token)
     return process_result(result)

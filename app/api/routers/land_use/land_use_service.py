@@ -2,7 +2,6 @@ import json
 import shapely
 import geopandas as gpd
 from loguru import logger
-from fastapi import HTTPException
 from ...utils import const, api_client
 from lu_igi.preprocessing.graph import generate_adjacency_graph
 from lu_igi.preprocessing.land_use import process_land_use
@@ -69,11 +68,22 @@ def _generate_blocks(project_id : int, roads_gdf : gpd.GeoDataFrame, token : str
     logger.success('1.4. Blocks are generated successfully')
     return blocks_gdf
 
+def _get_buffer_size(blocks_gdf : gpd.GeoDataFrame, buffer_step = 5, max_buffer_size = 100):
+    buffer_size = 0
+    while buffer_size < max_buffer_size:
+        union = blocks_gdf.geometry.buffer(buffer_size).unary_union
+        if isinstance(union, shapely.Polygon):
+            break
+        buffer_size += buffer_step
+    return buffer_size
+
+
 def _optimize_land_use(profile_id : int, blocks_gdf : gpd.GeoDataFrame, max_iter : int):
     logger.info('3. Optimizing land use')
 
-    logger.info('3.1. Generating adjacency graph and setting optimizer')
-    graph = generate_adjacency_graph(blocks_gdf)
+    buffer_size = _get_buffer_size(blocks_gdf)
+    logger.info(f'3.1. Generating adjacency graph for buffer_size={buffer_size} and setting optimizer')
+    graph = generate_adjacency_graph(blocks_gdf, buffer_size)
     optimizer = Optimizer(graph)
 
     logger.info('3.2. Getting profile land use shares')
@@ -89,14 +99,18 @@ def _optimize_land_use(profile_id : int, blocks_gdf : gpd.GeoDataFrame, max_iter
     logger.success('3.5. Land use is optimized successfully')
     return result
 
-def generate_land_use(project_id : int, profile_id : int, roads_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame, max_iter : int, token : str | None):
+def generate_land_use(project_id : int, profile_id : int, user_gdf : gpd.GeoDataFrame, zones_gdf : gpd.GeoDataFrame, generate_blocks : bool, max_iter : int, token : str | None):
 
-    logger.info('Preprocessing input')
-    local_crs = roads_gdf.estimate_utm_crs()
-    roads_gdf = roads_gdf.to_crs(local_crs)
+    logger.info('0. Preprocessing input')
+    local_crs = zones_gdf.estimate_utm_crs()
     zones_gdf = zones_gdf.to_crs(local_crs)
+    user_gdf = user_gdf.to_crs(local_crs)
 
-    blocks_gdf = _generate_blocks(project_id, roads_gdf, token)
+    if generate_blocks:
+        blocks_gdf = _generate_blocks(project_id, user_gdf, token)
+    else:
+        blocks_gdf = user_gdf.explode(index_parts=False).reset_index(drop=True)
+
     blocks_gdf = _process_land_use(blocks_gdf, zones_gdf)
 
     return _optimize_land_use(profile_id, blocks_gdf, max_iter)
