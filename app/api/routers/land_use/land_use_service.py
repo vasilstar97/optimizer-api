@@ -1,6 +1,7 @@
 import json
 import shapely
 import geopandas as gpd
+import momepy
 from loguru import logger
 from ...utils import const, api_client
 from lu_igi.preprocessing.graph import generate_adjacency_graph
@@ -51,18 +52,22 @@ def _fetch_water_objects(project_id : int, token : str):
 
 def _generate_blocks(project_id : int, roads_gdf : gpd.GeoDataFrame, token : str | None):
 
+    local_crs = roads_gdf.crs
+
     logger.info('1. Generating blocks')
     logger.info('1.1. Fetching project geometry')
     project_geometry = _get_project_geometry(project_id, token)
-    project_gdf = gpd.GeoDataFrame(geometry=[project_geometry], crs=const.DEFAULT_CRS)
+    logger.info(project_geometry)
+    project_gdf = gpd.GeoDataFrame(geometry=[project_geometry], crs=const.DEFAULT_CRS).to_crs(local_crs)
+    project_gdf.geometry = project_gdf.geometry.buffer(-1)
 
     logger.info('1.2. Fetching water objects')
     water_gdf = _fetch_water_objects(project_id, token)
     
     logger.info('1.3. Initializing and running BlocksGenerator')
-    local_crs = roads_gdf.crs
     roads_gdf = roads_gdf.explode(index_parts=False).reset_index(drop=True)
-    bg = BlocksGenerator(project_gdf.to_crs(local_crs), roads_gdf, None, water_gdf)
+    roads_gdf.geometry = momepy.close_gaps(roads_gdf, 1)
+    bg = BlocksGenerator(project_gdf, roads_gdf, None, water_gdf)
     blocks_gdf = bg.run()
     
     logger.success('1.4. Blocks are generated successfully')
